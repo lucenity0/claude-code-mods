@@ -1,0 +1,5 @@
+{
+  "name": "seatbelt",
+  "version": "0.1.0",
+  "description": "Blocks destructive shell commands and edits to secrets before they run"
+}

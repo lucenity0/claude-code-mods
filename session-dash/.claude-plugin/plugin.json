@@ -1,0 +1,6 @@
+{
+  "name": "session-dash",
+  "version": "0.1.0",
+  "description": "/dash opens a live side pane with tool calls, files touched, tokens and turn times",
+  "types": "./types/index.d.ts"
+}

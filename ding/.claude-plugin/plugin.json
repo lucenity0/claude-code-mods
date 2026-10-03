@@ -1,0 +1,19 @@
+{
+  "name": "ding",
+  "version": "0.1.0",
+  "description": "Chime and toast when a long turn finishes, so you can look away",
+  "userConfig": {
+    "thresholdSeconds": {
+      "type": "number",
+      "title": "Threshold (seconds)",
+      "description": "Only ding for turns that ran at least this long",
+      "default": 30
+    },
+    "sound": {
+      "type": "boolean",
+      "title": "Play sound",
+      "description": "Play the chime as well as showing the toast",
+      "default": true
+    }
+  }
+}
