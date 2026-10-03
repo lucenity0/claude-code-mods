@@ -13,7 +13,7 @@ export const register: Register = (on, options) => {
     const isWorthADing = e.agentId === undefined && !e.isAborted && e.durationMs >= thresholdMs
     if (isWorthADing) {
       const verb = e.reason === 'answer' ? 'Done' : 'Stopped'
-      $.ui.toast(`🔔 ${verb} in ${formatDuration(e.durationMs)}`)
+      $.ui.toast(`${verb} in ${formatDuration(e.durationMs)}`)
       if (hasSound) {
         $.audio.play({ asset: 'sounds/done.wav' }).catch(() => undefined)
       }

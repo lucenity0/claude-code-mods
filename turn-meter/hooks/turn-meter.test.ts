@@ -21,7 +21,7 @@ test('ticks while the turn runs, then shows the summary', async ($, on) => {
 
   await $.turn.start({ text: 'hi', turnId: 't1' })
   await clock.advance(3000)
-  expect(statuses.at(-1)).toBe('⏱ 3s')
+  expect(statuses.at(-1)).toBe('running 3s')
 
   await $.turn.complete({
     answer: 'done',

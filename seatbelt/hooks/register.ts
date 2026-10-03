@@ -13,7 +13,7 @@ function checkFile(tool: string, path: string): { deny: string; toast: string } 
 
   return {
     deny: `seatbelt: ${path} ${rule.reason}, so ${tool} is blocked. Ask the user to make this change themselves.`,
-    toast: `🛑 seatbelt blocked ${tool} on ${clip(path)}`,
+    toast: `seatbelt blocked ${tool} on ${clip(path)}`,
   }
 }
 
@@ -22,7 +22,7 @@ export const register: Register = on => {
     const rule = firstMatch(BASH_RULES, e.command)
     if (rule === undefined) return next(e)
 
-    $.ui.toast(`🛑 seatbelt blocked ${rule.name}: ${clip(e.command)}`)
+    $.ui.toast(`seatbelt blocked ${rule.name}: ${clip(e.command)}`)
     return {
       deny: `seatbelt: blocked \`${clip(e.command, 200)}\` (${rule.name}): it ${rule.reason}. Do not retry or work around this; if the user really wants it, they can run it themselves.`,
     }

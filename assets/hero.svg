@@ -85,5 +85,5 @@
 
   <!-- status line + toast -->
   <text x="24" y="472" class="dim">✓ 41s · 12.3k in · 1.8k out</text>
-  <text x="936" y="472" text-anchor="end" class="acc">🔔 Done in 47s</text>
+  <text x="936" y="472" text-anchor="end" class="acc">Done in 47s</text>
 </svg>

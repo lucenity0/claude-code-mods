@@ -27,10 +27,10 @@ export const register: Register = on => {
   on('turn.start', ($, e, next) => {
     ticker?.cancel()
     let seconds = 0
-    $.ui.status('⏱ 0s')
+    $.ui.status('running 0s')
     ticker = $.clock.every(1000, () => {
       seconds += 1
-      $.ui.status(`⏱ ${formatDuration(seconds * 1000)}`)
+      $.ui.status(`running ${formatDuration(seconds * 1000)}`)
     })
 
     return next(e)

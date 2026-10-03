@@ -28,7 +28,7 @@ const turn = (durationMs: number, extra: { agentId?: string; isAborted?: boolean
 test('dings for a long turn', async ($, on) => {
   const { toasts, sounds } = record(on)
   await $.turn.complete(turn(47_000))
-  expect(toasts).toEqual(['🔔 Done in 47s'])
+  expect(toasts).toEqual(['Done in 47s'])
   expect(sounds).toEqual([{ asset: 'sounds/done.wav' }])
 })
 
@@ -44,6 +44,6 @@ test('stays quiet for short, aborted and subagent turns', async ($, on) => {
 test('honours the configured threshold and mute', { options: { thresholdSeconds: 5, sound: false } }, async ($, on) => {
   const { toasts, sounds } = record(on)
   await $.turn.complete(turn(6_000))
-  expect(toasts).toEqual(['🔔 Done in 6s'])
+  expect(toasts).toEqual(['Done in 6s'])
   expect(sounds).toEqual([])
 })
