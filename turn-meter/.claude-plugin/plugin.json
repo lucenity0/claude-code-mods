@@ -1,5 +1,11 @@
 {
   "name": "turn-meter",
   "version": "0.1.0",
-  "description": "Live turn timer in the status line, then duration and tokens when the turn ends"
+  "description": "Live turn timer in the status line, then duration and tokens when the turn ends",
+  "author": {
+    "name": "Nafees S",
+    "url": "https://github.com/lucenity0"
+  },
+  "repository": "https://github.com/lucenity0/claude-code-mods",
+  "license": "MIT"
 }

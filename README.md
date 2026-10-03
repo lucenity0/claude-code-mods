@@ -1,111 +1,249 @@
-# mods
+<div align="center">
 
-Small mods for [Claude Code](https://claude.com/claude-code). Each folder is a self-contained plugin built on Claude Code's **function hooks**, a TypeScript module that can draw panes and status lines, block or rewrite tool calls, add slash commands and play sounds.
+# Claude Code Mods
 
-| Mod | What it does |
-| --- | --- |
-| [**turn-meter**](#turn-meter) | Live turn timer in the status line, then duration and tokens when the turn ends |
-| [**seatbelt**](#seatbelt) | Blocks destructive shell commands and edits to secrets before they run |
-| [**ding**](#ding) | Chime and toast when a long turn finishes, so you can look away |
-| [**session-dash**](#session-dash) | `/dash` opens a live side pane: tool calls, files touched, tokens, turn-time sparkline |
+**Small plugins that change how Claude Code looks and behaves.**
+Each one is a single TypeScript file of function hooks. Clone it, point Claude Code at the folder, and it's live.
 
-> Function hooks are an **early-access** Claude Code API and may change between releases. These mods were built and tested against Claude Code 2.1.287.
+![Claude Code](https://img.shields.io/badge/Claude_Code-2.1.287-d97757?style=flat-square)
+![mods](https://img.shields.io/badge/mods-4-d97757?style=flat-square)
+![tests](https://img.shields.io/badge/tests-39_passing-57ab5a?style=flat-square)
+![license](https://img.shields.io/badge/license-MIT-8b8b8b?style=flat-square)
 
-## Install
+<img src="assets/hero.svg" alt="Claude Code with all four mods running: seatbelt blocking a dangerous rm, the session-dash pane, the turn-meter status line and a ding toast" width="900">
 
-Clone the repo, then point Claude Code at the mods you want.
+</div>
+
+---
+
+## The mods
+
+| | Mod | What it does | Hooks it uses |
+|---|---|---|---|
+| ⏱ | [**turn-meter**](#-turn-meter) | Live turn timer in the status line, then the duration and tokens when the turn ends | `turn.start` `turn.complete` `$.ui.status` `$.clock.every` |
+| 🛑 | [**seatbelt**](#-seatbelt) | Blocks destructive shell commands and edits to secrets before they run | `tool.call` → `{ deny }` |
+| 🔔 | [**ding**](#-ding) | Chime and toast when a long turn finishes, so you can look away | `turn.complete` `$.audio.play` `$.ui.toast` |
+| 📊 | [**session-dash**](#-session-dash) | `/dash` opens a live side pane with tool calls, files touched, tokens and turn times | `$.command.register` `$.ui.open` `ui.render` `$.state` `Raster` |
+
+## Quick start
 
 ```sh
-git clone <this repo> ~/mods
+git clone https://github.com/lucenity0/claude-code-mods ~/claude-code-mods
 
-# one session, any mods you like
-claude --plugin-dir ~/mods/seatbelt --plugin-dir ~/mods/turn-meter
+# try one (or several) for a session
+claude --plugin-dir ~/claude-code-mods/seatbelt --plugin-dir ~/claude-code-mods/session-dash
 ```
 
-To load them in every session, list the folders in `~/.claude/settings.json` (colon-separated on macOS/Linux):
+To keep them on in every session, add this to `~/.claude/settings.json`:
 
-```json
+```jsonc
 {
   "env": {
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/mods/seatbelt:~/mods/turn-meter:~/mods/ding:~/mods/session-dash"
+    // colon-separated on macOS / Linux
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/claude-code-mods/turn-meter:~/claude-code-mods/seatbelt:~/claude-code-mods/ding:~/claude-code-mods/session-dash"
   }
 }
 ```
 
-Interactive sessions watch these folders, so saving a change reloads the mod immediately.
+Interactive sessions watch those folders, so saving a mod hot-reloads it right away.
+
+> [!NOTE]
+> Function hooks are an **early-access** Claude Code API and can change between releases. These mods are built and tested against **Claude Code 2.1.287**.
 
 ---
 
-## turn-meter
+## ⏱ turn-meter
 
-While a turn runs, the status line under the prompt counts up (`⏱ 12s`). When the turn ends it shows the totals:
+A stopwatch in the status line while Claude works, and the bill when it's done.
 
 ```
-✓ 41s · 12.3k in · 1.8k out
+⏱ 12s                              ← while the turn runs
+✓ 41s · 12.3k in · 1.8k out        ← when it finishes
+✗ stopped after 8s                 ← if you hit Esc
 ```
 
-"In" counts every input token, cached ones included. Subagent turns are ignored, and an interrupted turn shows `✗ stopped after …`.
+The core of it is a timer that starts on `turn.start` and is cancelled on `turn.complete`:
 
-## seatbelt
+```ts
+on('turn.start', ($, e, next) => {
+  ticker?.cancel()
+  let seconds = 0
+  $.ui.status('⏱ 0s')
+  ticker = $.clock.every(1000, () => {
+    seconds += 1
+    $.ui.status(`⏱ ${formatDuration(seconds * 1000)}`)
+  })
 
-Checks every `Bash`, `Edit`, `Write` and `NotebookEdit` call before it runs. When a call matches a rule, seatbelt denies it, tells the model not to work around the block, and shows a toast.
+  return next(e)
+})
+```
 
-| Rule | Example it blocks |
-| --- | --- |
-| `rm -rf` on `/`, a top-level folder, or `~` | `rm -rf /`, `rm -fr ~`, `rm -rf /tmp/x/../../` (paths are normalized) |
-| Force-push to main/master | `git push -f origin main`, `git push origin +master` |
-| Piping the internet into a shell | `curl … \| bash`, `wget -qO- … \| sudo sh` |
-| Disk wipers | `mkfs.ext4 …`, `dd … of=/dev/disk2` |
-| `chmod -R 777` | `chmod -R 777 .` |
-| Fork bomb | `:(){ :\|:& };:` |
-| Secret files | edits to `.env`, `.env.local`, `*.pem`, `*.key`, `id_rsa*`, anything in `~/.ssh/` (`.env.example` is fine) |
+"In" counts every input token, cached ones included. Subagent turns are ignored.
 
-Everyday commands still go through, for example `rm -rf node_modules`, `git push --force origin my-branch` and `git push origin main`. To add a rule, append it to `BASH_RULES` or `FILE_RULES` in [`seatbelt/hooks/rules.ts`](seatbelt/hooks/rules.ts) and add a case to the test file.
+## 🛑 seatbelt
 
-seatbelt is a guardrail against accidents, not a sandbox. A determined script can get past pattern matching.
+A last line of defence. Every `Bash`, `Edit`, `Write` and `NotebookEdit` call is checked against a list of rules **before** it runs. When one matches, the call is denied, the model is told not to work around it, and you get a toast.
 
-## ding
+```
+● Bash(rm -rf /tmp/build/../../)
+  ⎿  seatbelt: blocked `rm -rf /tmp/build/../../` (rm -rf on / or ~): it recursively
+     deletes the filesystem root, a top-level folder or your home folder. Do not retry…
+```
 
-When a main-loop turn that ran at least 30 seconds finishes, ding shows `🔔 Done in 47s` and plays a short chime. On macOS the chime plays through `afplay`. Elsewhere you get the toast only. Interrupted turns and subagent turns stay quiet.
+| Rule | Blocks | Still allows |
+|---|---|---|
+| `rm -rf` on `/`, top-level dirs, `~` | `rm -rf /`, `sudo rm -rf /*`, `rm -fr ~`, `rm -rf /tmp/x/../../` | `rm -rf node_modules`, `rm -rf ./build` |
+| Force-push to main | `git push -f origin main`, `git push origin +master` | `git push --force origin my-branch` |
+| Internet → shell | `curl … \| bash`, `wget -qO- … \| sudo sh` | `curl -o install.sh …` |
+| Disk wipers | `mkfs.ext4 /dev/sda1`, `dd … of=/dev/disk2` | |
+| World-writable trees | `chmod -R 777 .` | `chmod 755 script.sh` |
+| Fork bomb | `:(){ :\|:& };:` | |
+| Secrets | edits to `.env`, `.env.local`, `*.pem`, `*.key`, `id_rsa*`, `~/.ssh/*` | `.env.example`, `.env.sample` |
 
-Both settings appear in `/config`, or you can set them in settings:
+Paths are normalized before they're checked, so `..` tricks don't slip through. Each rule is a small, plain object, so adding one is a few lines in [`seatbelt/hooks/rules.ts`](seatbelt/hooks/rules.ts):
+
+```ts
+{
+  name: 'curl | sh',
+  reason: 'pipes a script from the internet straight into a shell',
+  matches: command => /\b(curl|wget)\b[^|]*\|\s*(sudo\s+)?(ba|z|da)?sh\b/.test(command),
+},
+```
+
+The hook that enforces the rules is the whole idea in one call:
+
+```ts
+on('tool.call', { tool: 'Bash' }, ($, e, next) => {
+  const rule = firstMatch(BASH_RULES, e.command)
+  if (rule === undefined) return next(e)          // let it run
+
+  $.ui.toast(`🛑 seatbelt blocked ${rule.name}: ${clip(e.command)}`)
+  return { deny: `seatbelt: blocked … (${rule.name}): it ${rule.reason}. …` }
+})
+```
+
+> [!WARNING]
+> seatbelt is a guardrail against accidents, not a sandbox. Pattern matching can be bypassed by a determined script.
+
+## 🔔 ding
+
+Start a long task, go make coffee, and come back when it chimes.
+
+```
+                                                         🔔 Done in 47s
+```
+
+When a main-loop turn that ran past the threshold finishes, ding shows a toast and plays [`sounds/done.wav`](ding/sounds/done.wav), an original two-note chime generated for this repo. Interrupted turns and subagent turns stay quiet. The sound plays on macOS through `afplay`. Other platforms get the toast only.
+
+Both options show up in `/config`, or you can set them directly:
 
 ```json
 { "pluginConfigs": { "ding": { "options": { "thresholdSeconds": 60, "sound": false } } } }
 ```
 
-## session-dash
+## 📊 session-dash
 
-Type `/dash` to open a side pane, and `/dash` again (or `q`) to close it. The pane shows:
+Type **`/dash`** to dock a live dashboard beside the transcript. Type `/dash` again, or press `q`, to close it.
 
-- turns, total time, and input and output tokens
-- tool calls by tool, as bars
-- a sparkline of the last 30 turn durations, drawn as a `Raster` in the terminal
-- the files most recently read or edited
-- the number of blocked and errored calls
+```
+╭─ Session ─────────────────────────────╮
+│ 4 turns · 2m13s · 184k in · 9.2k out  │
+│ 1 blocked · 0 errored                 │
+│                                       │
+│ Tools (23 calls)                      │
+│ Bash  ████████████████████ 9          │
+│ Read  ███████████████ 7               │
+│ Edit  █████████ 4                     │
+│ Grep  ████ 2                          │
+│                                       │
+│ Turn time (last 12) · max 1m12s       │
+│ ▂▄▃▆▁▅█▃▄▁▆▃                          │
+│                                       │
+│ Recent files (2)                      │
+│ src/server.ts                         │
+│ README.md                             │
+│                                       │
+│ [ Reset ]  [ Close ]                  │
+╰───────────────────────────────────────╯
+```
 
-Press `r` to reset the counters. The stats live in session state, so they survive hot reloads.
+The stats live in `$.state`, so they survive hot reloads. Any write redraws only the parts of the pane that read the value. Every tool call passes through a counter on its way to the engine:
+
+```ts
+on('tool.call', async ($, e, next) => {
+  const ran = await next(e)                              // let the tool run first…
+  await update($, stats, current =>                      // …then record how it went
+    countTool(current, e.tool, { isDenied: ran.deny !== undefined, isError: ran.isError === true }),
+  )
+  return ran
+})
+```
+
+In the terminal the sparkline is drawn as a single `Raster`: one packed grid of colored cells, not one element per bar. Other surfaces fall back to `Text`.
 
 ---
 
-## Making your own
+## Make your own
 
-Each mod has the same layout:
+A mod is three files. This is a complete one that toasts every time Claude edits a file:
 
 ```
-my-mod/
-  .claude-plugin/plugin.json   name, version, description (+ "types" if it keeps $.state)
-  hooks/hooks.json             { "modules": ["./register.ts"] }
-  hooks/register.ts(x)         export const register: Register = (on, options) => { ... }
-  hooks/*.test.ts              tests, run by `claude plugin test`
-  types/index.d.ts             state contract (only if the mod uses $.state)
+hello/
+├── .claude-plugin/plugin.json   { "name": "hello", "version": "0.1.0", "description": "…" }
+└── hooks/
+    ├── hooks.json               { "modules": ["./register.ts"] }
+    └── register.ts
 ```
 
-Check it, then test it:
+```ts
+import type { Register } from 'claude-code'
+
+export const register: Register = on => {
+  on('tool.call', { tool: 'Edit' }, async ($, e, next) => {
+    const result = await next(e)
+    $.ui.toast(`✏️  edited ${e.file_path.split('/').pop()}`)
+    return result
+  })
+}
+```
+
+Every hook has the shape `($, e, next)`:
+
+- `$` is the engine: `$.ui`, `$.clock`, `$.state`, `$.tool`, `$.audio` and the rest.
+- `e` is the event.
+- `next(e)` passes control on.
+
+Return without calling `next` to answer for yourself (for example `{ deny }`), or call `next({ ...e, … })` to rewrite what the rest of the chain sees.
+
+| You want… | Hook / call | See |
+|---|---|---|
+| a status line | `$.ui.status(text)` | turn-meter |
+| a toast | `$.ui.toast(text)` | ding, seatbelt |
+| to block or rewrite a tool call | `on('tool.call', { tool })` → `{ deny }` / `next({...e})` | seatbelt |
+| a sound | `$.audio.play({ asset })` | ding |
+| user settings | `userConfig` in `plugin.json` → `register(on, options)` | ding |
+| a slash command | `$.command.register` + `on('command.run')` | session-dash |
+| a pane | `$.ui.open` + `on('ui.render', { component: 'Pane' })` | session-dash |
+| state that survives reloads | `atom` / `read` / `update` + a `types/index.d.ts` contract | session-dash |
+
+Check your mod, then run its tests:
 
 ```sh
-claude plugin validate ./my-mod   # what the mod hooks and calls, and anything the engine would refuse
-claude plugin test ./my-mod       # runs hooks/*.test.ts against the real engine
+claude plugin validate ./hello   # what it hooks and calls, and anything the engine would refuse
+claude plugin test ./hello       # runs hooks/*.test.ts against the real engine
 ```
 
-Once Claude Code has loaded a mod, it writes the API typings into `.claude-plugin/types/` (ignored by git), so `tsc -p ./my-mod` type-checks it.
+Once Claude Code has loaded a mod, it writes the full API typings into `.claude-plugin/types/` (ignored by git), so `tsc -p ./hello` type-checks it.
+
+## Ideas for what's next
+
+- [ ] **todo-band**: pinned TODOs in a row above the prompt, ticked off with buttons
+- [ ] **scratchpad**: a `notes` tool the model can call, persisted across sessions
+- [ ] **cost-cap**: warn, then stop, when a session passes a token budget
+- [ ] **focus-mode**: hide tool rows and show only Claude's answers
+
+PRs and new mod ideas are welcome. Open an issue!
+
+## License
+
+[MIT](LICENSE)

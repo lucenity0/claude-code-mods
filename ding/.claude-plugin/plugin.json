@@ -2,6 +2,12 @@
   "name": "ding",
   "version": "0.1.0",
   "description": "Chime and toast when a long turn finishes, so you can look away",
+  "author": {
+    "name": "Nafees S",
+    "url": "https://github.com/lucenity0"
+  },
+  "repository": "https://github.com/lucenity0/claude-code-mods",
+  "license": "MIT",
   "userConfig": {
     "thresholdSeconds": {
       "type": "number",

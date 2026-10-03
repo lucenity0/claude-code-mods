@@ -1,5 +1,11 @@
 {
   "name": "seatbelt",
   "version": "0.1.0",
-  "description": "Blocks destructive shell commands and edits to secrets before they run"
+  "description": "Blocks destructive shell commands and edits to secrets before they run",
+  "author": {
+    "name": "Nafees S",
+    "url": "https://github.com/lucenity0"
+  },
+  "repository": "https://github.com/lucenity0/claude-code-mods",
+  "license": "MIT"
 }

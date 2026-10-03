@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="492" viewBox="0 0 960 492" role="img" aria-label="A Claude Code terminal running the mods: seatbelt blocks a dangerous rm, the session-dash pane shows tool-call bars and a turn-time sparkline, turn-meter shows the turn summary in the status line and ding shows a toast">
+  <style>
+    text { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; fill: #e6e6e6; white-space: pre; }
+    .dim { fill: #8b8b8b; }
+    .acc { fill: #d97757; }
+    .red { fill: #e5534b; }
+    .grn { fill: #57ab5a; }
+    .b { font-weight: 700; }
+    .title { font-size: 12px; fill: #9a9a9a; }
+  </style>
+
+  <rect width="960" height="492" rx="12" fill="#1b1b1d"/>
+  <rect width="960" height="36" rx="12" fill="#262628"/>
+  <rect y="24" width="960" height="12" fill="#262628"/>
+  <circle cx="22" cy="18" r="6" fill="#ff5f57"/>
+  <circle cx="42" cy="18" r="6" fill="#febc2e"/>
+  <circle cx="62" cy="18" r="6" fill="#28c840"/>
+  <text x="480" y="22" text-anchor="middle" class="title">claude — ~/my-app</text>
+
+  <!-- transcript -->
+  <text x="24" y="70"><tspan class="acc">&gt;</tspan> tidy up: delete the build dirs and push to main</text>
+
+  <text x="24" y="100"><tspan class="red">●</tspan> <tspan class="b">Bash</tspan>(rm -rf /tmp/build/../../)</text>
+  <text x="24" y="120" class="red">  ⎿  seatbelt: blocked (rm -rf on / or ~)</text>
+  <text x="24" y="140" class="dim">     it recursively deletes the filesystem root…</text>
+
+  <text x="24" y="170">● That path resolves to /, so I'll scope it to ./build.</text>
+
+  <text x="24" y="200"><tspan class="grn">●</tspan> <tspan class="b">Bash</tspan>(rm -rf ./build ./dist)</text>
+  <text x="24" y="220" class="dim">  ⎿  (no output)</text>
+
+  <text x="24" y="250"><tspan class="grn">●</tspan> <tspan class="b">Bash</tspan>(git push origin main)</text>
+  <text x="24" y="270" class="dim">  ⎿  a1f3c9e..7be20d4  main -&gt; main</text>
+
+  <text x="24" y="300">● Cleaned ./build and ./dist and pushed to main.</text>
+
+  <!-- session-dash pane -->
+  <rect x="600.5" y="52.5" width="343" height="340" rx="6" fill="#202022" stroke="#3a3a3c"/>
+  <text x="614" y="74" class="acc b">Session</text>
+  <text x="614" y="100" class="b">4 turns · 2m13s · 184k in · 9.2k out</text>
+  <text x="614" y="118" class="red">1 blocked · 0 errored</text>
+
+  <text x="614" y="146" class="dim">Tools (23 calls)</text>
+  <text x="614" y="166">Bash</text>
+  <rect x="664" y="156" width="200" height="11" rx="1" fill="#d97757"/>
+  <text x="872" y="166">9</text>
+  <text x="614" y="184">Read</text>
+  <rect x="664" y="174" width="156" height="11" rx="1" fill="#d97757"/>
+  <text x="828" y="184">7</text>
+  <text x="614" y="202">Edit</text>
+  <rect x="664" y="192" width="89" height="11" rx="1" fill="#d97757"/>
+  <text x="761" y="202">4</text>
+  <text x="614" y="220">Grep</text>
+  <rect x="664" y="210" width="44" height="11" rx="1" fill="#d97757"/>
+  <text x="716" y="220">2</text>
+  <text x="614" y="238">Write</text>
+  <rect x="664" y="228" width="22" height="11" rx="1" fill="#d97757"/>
+  <text x="694" y="238">1</text>
+
+  <text x="614" y="266" class="dim">Turn time (last 12) · max 1m12s</text>
+  <g fill="#d97757">
+    <rect x="614" y="290" width="7" height="6"/>
+    <rect x="623" y="284" width="7" height="12"/>
+    <rect x="632" y="287" width="7" height="9"/>
+    <rect x="641" y="278" width="7" height="18"/>
+    <rect x="650" y="292" width="7" height="4"/>
+    <rect x="659" y="282" width="7" height="14"/>
+    <rect x="668" y="274" width="7" height="22"/>
+    <rect x="677" y="288" width="7" height="8"/>
+    <rect x="686" y="285" width="7" height="11"/>
+    <rect x="695" y="291" width="7" height="5"/>
+    <rect x="704" y="280" width="7" height="16"/>
+    <rect x="713" y="286" width="7" height="10"/>
+  </g>
+
+  <text x="614" y="324" class="dim">Recent files (2)</text>
+  <text x="614" y="342">src/server.ts</text>
+  <text x="614" y="360">README.md</text>
+
+  <text x="614" y="384"><tspan class="acc">[ Reset ]</tspan>  [ Close ]</text>
+
+  <!-- prompt -->
+  <rect x="16.5" y="408.5" width="927" height="36" rx="6" fill="none" stroke="#3a3a3c"/>
+  <text x="30" y="431"><tspan class="acc">&gt;</tspan> <tspan class="dim">█</tspan></text>
+
+  <!-- status line + toast -->
+  <text x="24" y="472" class="dim">✓ 41s · 12.3k in · 1.8k out</text>
+  <text x="936" y="472" text-anchor="end" class="acc">🔔 Done in 47s</text>
+</svg>
