@@ -22,17 +22,18 @@ git clone https://github.com/lucenity0/claude-code-mods ~/claude-code-mods
 claude --plugin-dir ~/claude-code-mods/seatbelt --plugin-dir ~/claude-code-mods/session-dash
 ```
 
-To load them in every session, set this in `~/.claude/settings.json`:
+To turn on function hooks and load the mods in every session, set this in `~/.claude/settings.json`:
 
 ```json
 {
   "env": {
+    "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS": "1",
     "CLAUDE_CODE_PLUGIN_DIRS": "~/claude-code-mods/turn-meter:~/claude-code-mods/seatbelt:~/claude-code-mods/ding:~/claude-code-mods/session-dash"
   }
 }
 ```
 
-These use function hooks, an early-access API, and were tested on Claude Code 2.1.287.
+These use function hooks, an early-access API that `CLAUDE_CODE_ENABLE_FUNCTION_HOOKS` turns on, and were tested on Claude Code 2.1.287.
 
 &nbsp;
 
