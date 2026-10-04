@@ -11,7 +11,7 @@ ding           a chime when a long turn finishes
 session-dash   /dash, a live pane of what the session did
 ```
 
-Also: [claude-familiar](https://github.com/lucenity0/claude-familiar), a pixel companion that sits above the prompt and reacts to your session.
+Also: [claude-familiar](https://github.com/lucenity0/claude-familiar), a pixel companion that sits above the prompt and reacts to your session, and [claude-readout](https://github.com/lucenity0/claude-readout), which names the files on the folded `Read 3 files` line.
 
 &nbsp;
 
