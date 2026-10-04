@@ -1,0 +1,12 @@
+{
+  "name": "context-meter",
+  "version": "0.1.0",
+  "description": "A context window meter at the bottom right of the prompt; click it for the full breakdown",
+  "author": {
+    "name": "Nafees S",
+    "url": "https://github.com/lucenity0"
+  },
+  "repository": "https://github.com/lucenity0/claude-code-mods",
+  "license": "MIT",
+  "types": "./types/index.d.ts"
+}

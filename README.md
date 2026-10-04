@@ -9,6 +9,7 @@ turn-meter     a turn timer in the status line
 seatbelt       blocks destructive commands and edits to secrets
 ding           a chime when a long turn finishes
 session-dash   /dash, a live pane of what the session did
+context-meter  a context window meter under the prompt; click it for the breakdown
 ```
 
 Also: [claude-familiar](https://github.com/lucenity0/claude-familiar), a pixel companion that sits above the prompt and reacts to your session, and [claude-readout](https://github.com/lucenity0/claude-readout), which names the files on the folded `Read 3 files` line.
@@ -28,7 +29,7 @@ To turn on function hooks and load the mods in every session, set this in `~/.cl
 {
   "env": {
     "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS": "1",
-    "CLAUDE_CODE_PLUGIN_DIRS": "~/claude-code-mods/turn-meter:~/claude-code-mods/seatbelt:~/claude-code-mods/ding:~/claude-code-mods/session-dash"
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/claude-code-mods/turn-meter:~/claude-code-mods/seatbelt:~/claude-code-mods/ding:~/claude-code-mods/session-dash:~/claude-code-mods/context-meter"
   }
 }
 ```
@@ -136,6 +137,48 @@ on('tool.call', async ($, e, next) => {
   )
 
   return ran
+})
+```
+
+&nbsp;
+
+## context-meter
+
+A meter sits at the bottom right of the prompt, under the input. It turns yellow at 60% and red at 80%.
+
+```
+ctx ▰▰▰▱▱▱▱▱ 42%
+```
+
+Click it, or type `/ctx`, to open the breakdown. Esc closes it.
+
+```
+42%  84k of 200k                                     claude-opus-5-5 · estimated
+██████████████████████████▌█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒▒▒▒▒▒
+83k free · compacts in 83k
+
+● Messages                 62k  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   74%
+● System tools             13k  ━━━━━━━━                                15%
+● Skills                  4.9k  ━━━                                      6%
+● System prompt           3.7k  ━━                                       4%
+○ on demand                93k  MCP tools, not in the window
+
+last request 84k in · 82k cached · 967 out
+
+memory
+  CLAUDE.md   ~/code/app                                             900
+
+[ Count exactly ]  [ Refresh ]  [ Compact ]  [ Close ]
+```
+
+The breakdown is a local estimate. Count exactly counts it with the token-count API, as `/context` does.
+
+```ts
+on('session.measure', async ($, e, next) => {
+  await update($, fill, () => e.context)
+  if (e.changed.includes('context') && (await isPaneOpen($))) void loadDetails($, 'summary')
+
+  return next(e)
 })
 ```
 
